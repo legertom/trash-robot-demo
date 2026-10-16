@@ -16,6 +16,11 @@ const tuesday: HouseState = {
 
 export const fixtures: Record<string, HouseState> = {
   before: tuesday,
+  pickupKitchen: tuesday,
+  kitchenPicked: { ...tuesday, kitchenBags: 0 },
+  pickupBathroom: { ...tuesday, kitchenBags: 0 },
+  bathroomPicked: { ...tuesday, kitchenBags: 0, bathroomBags: 0 },
+  carrying: { ...tuesday, kitchenBags: 0, bathroomBags: 0 },
   misleading: { ...tuesday, kitchenBags: 0, bathroomBags: 0, garageBags: 2 },
   loaded: { ...tuesday, kitchenBags: 0, bathroomBags: 0, cartBags: 2 },
   failingAc2: { ...tuesday, kitchenBags: 0, bathroomBags: 0, garageBags: 2, cartLocation: "curb" },

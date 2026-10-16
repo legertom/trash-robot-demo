@@ -26,7 +26,7 @@ The editable timing estimates are in `story/timing.ts`; their current sum is abo
 
 | Beat | Approx. time | Suggested narration |
 | --- | ---: | --- |
-| 1–3 · False pass | 0:54 | “One test passed. What did it check? Predict where the bags are. Here is the garage floor.” |
+| 1–3 · False pass | 0:54 | “Watch the robot collect each indoor bag. The test passes when both bins are empty. Predict where the bags go next. Here is the garage floor.” |
 | 4–7 · Contract | 1:01 | “The written spec defines the whole weekly cycle. On a delayed Wednesday, the owner decides the follow-up.” |
 | 8–10 · Agent writes tests | 0:46 | “The agent translates each rule into an observable check. Four failures are useful evidence.” |
 | 11–12 · Accept tests | 0:34 | “I review these tests against the spec. Committing them fixes the contract before implementation.” |

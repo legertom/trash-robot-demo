@@ -1,4 +1,5 @@
 import { fixtures, type HouseState } from "../story/fixtures";
+import { robotCues, type RobotCue } from "../story/motion";
 
 type Props = { fixture: string; focus?: string; route?: boolean; compact?: boolean };
 
@@ -44,10 +45,11 @@ function Cart({ state }: { state: HouseState }) {
   );
 }
 
-function Robot({ state }: { state: HouseState }) {
-  const x = state.cartLocation === "curb" && state.day === "Tuesday" && state.kitchenBags === 0 ? 710 : 470;
+function Robot({ state, cue }: { state: HouseState; cue?: RobotCue }) {
+  const x = cue?.x ?? (state.cartLocation === "curb" && state.day === "Tuesday" && state.kitchenBags === 0 ? 710 : 470);
+  const y = cue?.y ?? 395;
   return (
-    <g className="robot-motion" style={{ transform: `translate(${x}px, 395px)` }}>
+    <g className="robot-motion" style={{ transform: `translate(${x}px, ${y}px)` }}>
       <path d="M32 -12 V-24" stroke="#10232B" strokeWidth="4" />
       <circle cx="32" cy="-27" r="5" fill="#E8B56E" stroke="#10232B" strokeWidth="2" />
       <rect x="0" y="0" width="66" height="63" rx="15" fill="#E9EFE2" stroke="#10232B" strokeWidth="4" />
@@ -57,16 +59,20 @@ function Robot({ state }: { state: HouseState }) {
       <path d="M25 48 Q33 55 42 48" fill="none" stroke="#2D5960" strokeWidth="3" strokeLinecap="round" />
       <path d="M6 63 V72 M59 63 V72" stroke="#10232B" strokeWidth="5" strokeLinecap="round" />
       <path d="M0 41 L-11 51 M66 41 L77 51" stroke="#10232B" strokeWidth="5" strokeLinecap="round" />
+      {(cue?.carrying ?? 0) > 0 && <Bag x={cue?.oneBagSide === "right" ? 73 : -34} y={25} small />}
+      {(cue?.carrying ?? 0) > 1 && <Bag x={73} y={25} small />}
+      {(cue?.carrying ?? 0) > 0 && <text x="33" y="-41" textAnchor="middle" className="robot-cargo-label">{cue?.carrying} IN HAND</text>}
     </g>
   );
 }
 
 export default function HouseScene({ fixture, focus, route = false, compact = false }: Props) {
   const state = fixtures[fixture] ?? fixtures.before;
+  const cue = robotCues[fixture];
   const isBad = state.garageBags > 0;
   return (
     <div className={`house-wrap ${compact ? "house-compact" : ""}`}>
-      <svg className="house-svg" viewBox="0 0 960 570" role="img" aria-label={`${state.day}: kitchen ${state.kitchenBags} bags, bathroom ${state.bathroomBags} bags, garage floor ${state.garageBags} bags, cart ${state.cartBags} bags at ${state.cartLocation}, pickup ${state.pickupComplete ? "complete" : "pending"}, needsHuman ${state.needsHuman}`}>
+      <svg className="house-svg" viewBox="0 0 960 570" role="img" aria-label={`${state.day}: kitchen ${state.kitchenBags} bags, bathroom ${state.bathroomBags} bags, robot carrying ${cue?.carrying ?? 0} bags, garage floor ${state.garageBags} bags, cart ${state.cartBags} bags at ${state.cartLocation}, pickup ${state.pickupComplete ? "complete" : "pending"}, needsHuman ${state.needsHuman}`}>
         <defs>
           <pattern id="floorLines" width="22" height="22" patternUnits="userSpaceOnUse">
             <path d="M0 22 L22 0" stroke="#D3DFD3" strokeWidth="1" opacity=".28" />
@@ -105,9 +111,10 @@ export default function HouseScene({ fixture, focus, route = false, compact = fa
         {route && <path d="M255 303 Q400 355 570 326 Q660 292 800 342" className="route-path" markerEnd="url(#routeArrow)" />}
         <Bin x={272} label="INDOOR BIN" count={state.kitchenBags} />
         <Bin x={589} label="INDOOR BIN" count={state.bathroomBags} />
+        {cue?.pickupAt && <circle key={fixture} cx={cue.pickupAt === "kitchen" ? 272 : 589} cy="285" r="51" className="pickup-ring" />}
         {Array.from({ length: state.garageBags }).map((_, i) => <Bag key={i} x={290 + i * 38} y={410} />)}
         <Cart state={state} />
-        <Robot state={state} />
+        <Robot state={state} cue={cue} />
         {state.needsHuman && (
           <g className="human-signal">
             <rect x="720" y="225" width="205" height="72" rx="15" fill="#F6D6A5" stroke="#845C30" strokeWidth="3" />

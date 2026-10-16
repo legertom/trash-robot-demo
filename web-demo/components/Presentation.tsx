@@ -17,7 +17,7 @@ const failureHouse: Record<string, { fixture: string; focus: string; text: strin
 };
 
 function maxStep(scene: Scene) {
-  return scene.transcript ? transcripts[scene.transcript]?.length ?? 1 : scene.frames?.length ?? 1;
+  return Math.max(scene.transcript ? transcripts[scene.transcript]?.length ?? 1 : 1, scene.frames?.length ?? 1);
 }
 
 function timeLabel(seconds: number) {
@@ -150,6 +150,11 @@ export default function Presentation() {
   const currentFixture = scene.frames
     ? scene.frames[Math.min(scene.frames.length - 1, state.step - 1)]
     : scene.fixture ?? "before";
+  const transcriptVisible = scene.transcriptRevealSteps
+    ? scene.transcriptRevealSteps.filter(step => state.step >= step).length
+    : state.step;
+  const pickupCaption = ["The house before the run", "Robot reaches the kitchen bin", "Kitchen bag in hand", "Robot reaches the bathroom bin", "Both bins empty · two bags in hand", "Test passes · destination still unknown"];
+  const routeCaption = ["Route begins", "Robot reaches the kitchen bin", "Kitchen bag in hand", "Robot reaches the bathroom bin", "Both bags in hand", "Bags loaded in cart", "Cart at curb · garage clear"];
   const criterion = criteria.find(item => item.id === scene.criterion);
   const isHouseScene = ["pass", "predict", "gap", "criterion", "route", "wednesday"].includes(scene.kind);
   const showTerminalAtLeft = scene.kind === "pass" || scene.kind === "red" || scene.kind === "evidence";
@@ -175,7 +180,7 @@ export default function Presentation() {
             {scene.detail && <p className="scene-detail">{scene.detail}</p>}
           </div>
 
-          {showTerminalAtLeft && scene.transcript && <Terminal id={scene.transcript} visible={state.step} />}
+          {showTerminalAtLeft && scene.transcript && <Terminal id={scene.transcript} visible={transcriptVisible} />}
 
           {scene.kind === "predict" && (
             <div className="gate-card prediction-gate">
@@ -234,10 +239,10 @@ export default function Presentation() {
 
           {isHouseScene && (
             <div className="house-stage">
-              <HouseScene fixture={currentFixture} focus={scene.kind === "gap" ? "garage" : scene.kind === "criterion" && scene.criterion === "AC4" ? "human" : undefined} route={scene.kind === "route" && state.step > 1} />
+              <HouseScene fixture={currentFixture} focus={scene.kind === "gap" ? "garage" : scene.kind === "criterion" && scene.criterion === "AC4" ? "human" : undefined} route={scene.kind === "route" && state.step >= 6} />
               <div className="house-caption">
-                <span>{scene.kind === "gap" ? "OBSERVED RESULT" : scene.kind === "pass" || scene.kind === "predict" || scene.kind === "criterion" && state.step === 1 ? "BEFORE THE RUN" : "SPEC EXPECTATION"}</span>
-                <strong>{scene.kind === "gap" ? "Bins empty ≠ task complete" : scene.kind === "pass" ? "The house before the run" : scene.kind === "predict" ? "Make your prediction" : scene.kind === "wednesday" ? state.step > 1 ? "Delay → owner needed" : "Collected → cart home" : scene.kind === "route" ? state.step > 2 ? "Route complete" : state.step > 1 ? "Bags loaded in cart" : "Route begins" : scene.kind === "criterion" && state.step === 1 ? "Starting state" : criterion?.short ?? "The house tells the story"}</strong>
+                <span>{scene.kind === "gap" ? "OBSERVED RESULT" : scene.kind === "pass" ? state.step === 1 ? "BEFORE THE RUN" : state.step === max ? "TEST RESULT" : "ROBOT AT WORK" : scene.kind === "predict" ? "PREDICTION PAUSE" : scene.kind === "criterion" && state.step === 1 ? "BEFORE THE RUN" : "SPEC EXPECTATION"}</span>
+                <strong>{scene.kind === "gap" ? "Bins empty ≠ task complete" : scene.kind === "pass" ? pickupCaption[state.step - 1] : scene.kind === "predict" ? "Empty bins · destination unknown" : scene.kind === "wednesday" ? state.step > 1 ? "Delay → owner needed" : "Collected → cart home" : scene.kind === "route" ? routeCaption[state.step - 1] : scene.kind === "criterion" && state.step === 1 ? "Starting state" : criterion?.short ?? "The house tells the story"}</strong>
               </div>
             </div>
           )}

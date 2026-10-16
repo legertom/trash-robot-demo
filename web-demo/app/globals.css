@@ -81,6 +81,8 @@ h1 { margin: 0; max-width: 11ch; font-family: Georgia, "Times New Roman", serif;
 .house-floor-count { fill: #276457; font: 900 25px Arial, Helvetica, sans-serif; }
 .house-floor-count.danger { fill: #b85448; }
 .cart-label { fill: #285656; font: 900 17px Arial, Helvetica, sans-serif; letter-spacing: 1.2px; }
+.robot-cargo-label { fill: #8A5A28; font: 900 17px Arial, Helvetica, sans-serif; letter-spacing: 1.2px; }
+.pickup-ring { fill: none; stroke: #DA9A4C; stroke-width: 6; animation: pickupPulse .7s ease-out both; }
 .human-title { fill: #704c26; font: 900 16px Arial, Helvetica, sans-serif; letter-spacing: 1px; }
 .human-detail { fill: #704c26; font: 700 15px Arial, Helvetica, sans-serif; }
 .focus-halo { fill: rgba(237,186,112,.13); stroke: #D9994D; stroke-width: 5; stroke-dasharray: 9 7; }
@@ -250,6 +252,7 @@ h1 { margin: 0; max-width: 11ch; font-family: Georgia, "Times New Roman", serif;
 @keyframes lineIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes signalIn { from { opacity: 0; transform: scale(.88); transform-origin: 820px 265px; } to { opacity: 1; transform: scale(1); } }
 @keyframes routeDash { to { stroke-dashoffset: -50; } }
+@keyframes pickupPulse { from { opacity: .9; stroke-width: 9; transform: scale(.65); transform-origin: center; } to { opacity: 0; stroke-width: 2; transform: scale(1.1); transform-origin: center; } }
 @keyframes blink { 50% { opacity: 0; } }
 @media (max-width: 1440px) {
   .topbar { min-height: 55px; }
