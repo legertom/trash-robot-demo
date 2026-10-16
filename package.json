@@ -6,7 +6,10 @@
   "description": "A small spec-to-failing-test demo using a weekly trash robot",
   "scripts": {
     "test": "node --test --test-reporter=spec",
-    "scenario": "node scripts/show-scenario.js"
+    "scenario": "node scripts/show-scenario.js",
+    "reset": "node scripts/reset.js",
+    "answer:tests": "node scripts/answer.js tests",
+    "answer:code": "node scripts/answer.js code"
   },
   "engines": {
     "node": ">=20"

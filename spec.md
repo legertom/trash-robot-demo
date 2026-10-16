@@ -26,9 +26,9 @@ Run `npm test`. The tests check the observable state described in AC1–AC4 and 
 
 ## 5. Human gates
 
-- The household owner reviews and commits tests generated from AC1–AC4 before implementation begins (README Step 7).
+- The household owner reviews and commits tests generated from AC1–AC4 before implementation begins (README step 6).
 - The household owner decides the next step when collection is delayed.
-- The household owner reviews the final code change and test results before accepting it (README Step 11).
+- The household owner reviews the final code change and test results before accepting it (README step 8).
 
 ## 6. Evidence
 

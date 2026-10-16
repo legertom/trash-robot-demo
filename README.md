@@ -1,342 +1,350 @@
-# Trash robot: from spec to failing test to passing code
+# Trash Robot
 
-This is a small, self-contained exercise you can run at home in about fifteen minutes. You will take a tiny program with one passing test, write a spec that describes what the program should really do, have a coding agent turn that spec into tests that fail, accept those tests yourself, and then have the agent make them pass without touching the tests.
+A fifteen-minute exercise. You will watch a coding agent turn a written spec into failing tests, accept those tests yourself, and then watch the agent make them pass.
 
-The program simulates a household robot that takes out the trash. The first version empties the kitchen and bathroom bins into the garage and stops there. The spec says the bags should reach the outdoor cart, the cart should reach the curb on Tuesday, and the cart should come back on Wednesday after collection.
+```
+   [o_o]   "I am the household robot."
+   /|_|\   "My job: take out the trash."
+    | |
+```
 
-Follow the steps in order. Each step shows the command to run and what you should see.
+The robot's first version empties the indoor bins and dumps the bags on the garage floor. The one existing test says that is fine. The spec says the bags should go in the cart, the cart should go to the curb, and the cart should come back the next day.
 
-## What you need
+```
+  WHAT THE TEST CHECKS         WHAT THE SPEC WANTS
 
-- **Node.js 20 or newer.** Check with `node --version`. Install from https://nodejs.org if needed.
-- **Git.** Check with `git --version`.
-- **Claude Code**, installed and signed in. Check with `claude --version`. Install instructions: https://docs.anthropic.com/en/docs/claude-code/overview
-- **A terminal.** The commands below assume macOS Terminal, Linux, Git Bash on Windows, or WSL.
-- **Two terminal windows** side by side. One runs Claude Code. The other runs the commands in this guide. The guide calls them **Claude Code** and **the shell**.
+  kitchen bin  --+             kitchen bin  --+
+                 +--> garage                  +--> cart --> curb --> (next day) back home
+  bathroom bin --+             bathroom bin --+
+```
 
-No `npm install` is needed. The project uses only Node's built-in test runner.
+## Contents
 
-## Files in this repository
+1. [Get the code](#1-get-the-code)
+2. [See the problem](#2-see-the-problem)
+3. [Read the rules](#3-read-the-rules)
+4. [Start Claude Code](#4-start-claude-code)
+5. [Ask Claude to write the tests](#5-ask-claude-to-write-the-tests)
+6. [Accept the tests](#6-accept-the-tests)
+7. [Ask Claude to fix the code](#7-ask-claude-to-fix-the-code)
+8. [Check the proof](#8-check-the-proof)
 
-| File | What it is |
-| --- | --- |
-| `spec.md` | The contract. Section 3 lists acceptance criteria AC1 to AC4. |
-| `src/trashRobot.js` | The program. One function, `runTrashRobot(state)`. |
-| `tests/initial.test.js` | The original, narrow test. It only checks the indoor bins. |
-| `scripts/show-scenario.js` | Prints what the robot does in three situations so you can see the gap. |
-| `CLAUDE.md` | Instructions the coding agent reads automatically when it starts in this folder. |
-| `.claude/settings.json` and `.claude/hooks/protect-tests.js` | A hook that blocks the agent from editing any test file that has been committed. |
-| `PRESENTER.md` | Timing and talking points for running this as a live demo. |
-| `DEMO-OUTPUT.md` | Captured output from each stage, for reference. |
+- [Start over](#start-over)
+- [No Claude Code?](#no-claude-code)
+- [Bonus: watch the guard rail](#bonus-watch-the-guard-rail)
+- [Help](#help)
 
-## Step 1: Get the code and confirm it runs
+**You need:** Node.js 20 or newer, Git, and [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview). Open **two terminal windows** side by side. One is for Claude Code. The other is for typing the commands below. No `npm install` is needed.
 
-In the shell:
+---
+
+## 1. Get the code
+
+In your terminal:
 
 ```bash
 git clone https://github.com/legertom/trash-robot-demo.git
 cd trash-robot-demo
-node --version
 npm test
 ```
 
-You should see a Node version of v20 or higher, then:
+You should see:
 
-```text
+```
 ✔ initial check: Tuesday indoor bins are empty
-ℹ tests 1
-ℹ suites 0
 ℹ pass 1
 ℹ fail 0
 ```
 
-The one existing test passes. Keep this shell open in the `trash-robot-demo` folder for the rest of the guide.
+One test. It passes.
 
-## Step 2: See the gap between the test and the real job
+[Back to top](#contents)
 
-In the shell:
+---
+
+## 2. See the problem
 
 ```bash
 npm run scenario
 ```
 
-You should see three scenarios. The first one looks like this:
+This draws the house before and after the robot runs. The first picture is Tuesday:
 
-```text
-Tuesday: one bag in the kitchen, one in the bathroom, cart in the garage (AC1)
-  before: kitchenBags=1  bathroomBags=1  garageBags=0  cartBags=0  cartLocation=garage  ...
-  after:  kitchenBags=0  bathroomBags=0  garageBags=2  cartBags=0  cartLocation=garage  ...
+```
+BEFORE the robot runs                    AFTER the robot runs
+.-----------------------.                .-----------------------.
+|  KITCHEN  | BATHROOM  |                |  KITCHEN  | BATHROOM  |
+|  bags: 1  |  bags: 1  |                |  bags: 0  |  bags: 0  |
+|-----------+-----------|                |-----------+-----------|
+|        GARAGE         |          ===>  |        GARAGE         |
+|  floor bags: 0        |                |  floor bags: 2        |
+|  [cart: 0 bags]       |                |  [cart: 0 bags]       |
+'-----------------------'                '-----------------------'
+  CURB: _______________                    CURB: _______________
 ```
 
-Look at the `after` line. The indoor bins are empty, which is all the existing test checks. But `garageBags=2` and `cartLocation=garage`. The bags went to the garage floor and the cart never moved. In the two Wednesday scenarios, nothing changes at all between `before` and `after`.
+The bins are empty, so the test passes. But look at the garage: two bags on the floor, cart never moved. In the two Wednesday pictures, nothing changes at all.
 
-This is the point of the exercise. The test passes, and the job is not done.
+**The test passes. The job is not done.** That is the whole problem.
 
-## Step 3: Read the contract
+[Back to top](#contents)
 
-Open `spec.md` in any editor and read section 3, the acceptance criteria:
+---
 
-- **AC1.** Normal Tuesday: indoor bins empty, two bags in the cart, garage clear, cart at the curb.
-- **AC2.** Tuesday with the cart already at the curb: same outcome.
-- **AC3.** Wednesday after collection: the cart returns to the garage.
-- **AC4.** Wednesday with collection delayed: the cart stays at the curb and `needsHuman` is `true`.
+## 3. Read the rules
 
-These four sentences are the whole contract. Everything that follows is checked against them.
+Open [spec.md](spec.md). Section 3 has four rules. In plain words:
 
-## Step 4: Start Claude Code and confirm the guard rail is loaded
+| Rule | Day | What should happen |
+| --- | --- | --- |
+| AC1 | Tuesday | Bags go in the cart. Cart goes to the curb. Garage floor stays clear. |
+| AC2 | Tuesday | Same thing, even if the cart is already at the curb. |
+| AC3 | Wednesday, trash collected | Cart comes back to the garage. |
+| AC4 | Wednesday, truck has not come | Cart stays out. Robot sets `needsHuman` to `true` and asks a person. |
 
-In the second terminal window, go to the same folder and start Claude Code:
+These four rules are the contract. Everything from here on is checked against them.
+
+[Back to top](#contents)
+
+---
+
+## 4. Start Claude Code
+
+In your **second** terminal window:
 
 ```bash
 cd trash-robot-demo
 claude
 ```
 
-If Claude Code asks whether you trust this folder, say yes.
+If it asks whether you trust this folder, say yes.
 
-Then type this inside Claude Code and press Enter:
+Now type this inside Claude Code and press Enter:
 
-```text
+```
 /hooks
 ```
 
-You should see a `PreToolUse` hook matching `Edit|Write|MultiEdit` that runs `.claude/hooks/protect-tests.js`. Press Escape to close the menu.
+You should see a hook called `protect-tests.js`. Press Escape to close.
 
-This hook is the guard rail. Once a test file is committed to Git, the hook blocks the agent from editing it. The agent can still create new test files. You will see it in action later.
+```
+   [o_o]  <-- the agent
+    | |
+  ======  <-- the guard rail: once you commit a test, the agent cannot edit it
+```
 
-## Step 5: Ask the agent to write the acceptance tests
+[Back to top](#contents)
 
-Paste this into Claude Code exactly as written and press Enter:
+---
 
-```text
+## 5. Ask Claude to write the tests
+
+Copy this, paste it into Claude Code, and press Enter:
+
+```
 Read spec.md. Create tests/contract.test.js with one node:test test for each
 acceptance criterion AC1–AC4. Check the observable result of each run.
 Keep src/trashRobot.js unchanged.
 ```
 
-When Claude Code asks for permission to create the file, approve it. It may also ask to run `npm test`. That is fine too.
-
-When it finishes, go to the shell and confirm only one new file appeared:
-
-```bash
-git status --short
-```
-
-You should see exactly:
-
-```text
-?? tests/contract.test.js
-```
-
-If `src/trashRobot.js` is also listed as modified, the agent changed the program when it should not have. Put it back with `git restore src/trashRobot.js` and continue.
-
-## Step 6: Run the new tests and watch them fail
-
-In the shell:
+Say yes when it asks to create the file. When it is done, go to your first terminal:
 
 ```bash
 npm test
 ```
 
-You should see four failures and one pass:
+You should see **four failures** and one pass:
 
-```text
-✖ AC1: Tuesday moves both indoor bags into the cart at the curb
-✖ AC2: Tuesday works when the cart starts at the curb
-✖ AC3: Wednesday after collection returns the cart to the garage
-✖ AC4: Wednesday delay keeps the cart at the curb for a human decision
+```
+✖ AC1: ...
+✖ AC2: ...
+✖ AC3: ...
+✖ AC4: ...
 ✔ initial check: Tuesday indoor bins are empty
-ℹ tests 5
-ℹ suites 0
 ℹ pass 1
 ℹ fail 4
 ```
 
-Below the summary, Node prints the reason for each failure. For AC1 you should see something like:
-
-```text
-AssertionError [ERR_ASSERTION]: the garage is clear
-2 !== 0
+```
+   RED
+  .----.
+  | ✖✖ |   Four tests. Four failures.
+  | ✖✖ |   Each one names something the robot does not do yet.
+  '----'
 ```
 
-The test names will differ a little depending on what the agent wrote, but there should be exactly four new tests, and all four should fail. Each failure names an observable outcome that the current program does not produce.
+This is good. The tests describe the goal. The code has not caught up.
 
-If fewer than four fail, open `tests/contract.test.js` and compare each test with its criterion in `spec.md`. A test that passes against the current program is checking too little.
+[Back to top](#contents)
 
-## Step 7: Review the tests and accept them
+---
 
-This step is yours, not the agent's. Open `tests/contract.test.js` and check each test against its criterion:
+## 6. Accept the tests
 
-- Does AC1 check `garageBags` is 0, `cartBags` is 2, and `cartLocation` is `"curb"`?
-- Does AC2 start with `cartLocation: "curb"` and check the same outcome?
-- Does AC3 start on Wednesday with `pickupComplete: true` and check the cart returns to `"garage"`?
-- Does AC4 start on Wednesday with `pickupComplete: false` and check `needsHuman` is `true`?
+**This step is yours, not the agent's.** Open `tests/contract.test.js` and read it. Does each test check what its rule in the table above says? If something looks wrong, tell Claude Code to fix it. The file is not locked yet.
 
-If something is wrong, tell Claude Code what to fix. The file is not committed yet, so the agent can still edit it.
-
-When you are satisfied, commit the tests in the shell:
+When you are happy, lock it in:
 
 ```bash
 git add tests/contract.test.js
 git commit -m "test: accept trash robot criteria AC1-AC4"
 ```
 
-This commit is the acceptance step. From now on the hook treats this file as locked.
+```
+  ======  <-- the guard rail is now up for this file
+```
 
-## Step 8: Ask the agent to make the tests pass
+[Back to top](#contents)
 
-Paste this into Claude Code and press Enter:
+---
 
-```text
+## 7. Ask Claude to fix the code
+
+Paste this into Claude Code:
+
+```
 Implement src/trashRobot.js so AC1–AC4 in spec.md pass.
 Keep the committed tests unchanged. Run npm test and report the result.
 ```
 
-Approve the edit to `src/trashRobot.js` and the `npm test` run when asked. The agent should report that all five tests pass.
-
-## Step 9: Confirm the result yourself
-
-In the shell:
+Say yes when it asks to edit the file and run the tests. Then check for yourself:
 
 ```bash
 npm test
+npm run scenario
 ```
 
-You should see:
-
-```text
-✔ AC1: Tuesday moves both indoor bags into the cart at the curb
-✔ AC2: Tuesday works when the cart starts at the curb
-✔ AC3: Wednesday after collection returns the cart to the garage
-✔ AC4: Wednesday delay keeps the cart at the curb for a human decision
+```
+✔ AC1: ...
+✔ AC2: ...
+✔ AC3: ...
+✔ AC4: ...
 ✔ initial check: Tuesday indoor bins are empty
-ℹ tests 5
-ℹ suites 0
 ℹ pass 5
 ℹ fail 0
 ```
 
-Then run the scenarios again:
-
-```bash
-npm run scenario
+```
+   GREEN
+  .----.
+  | ✔✔ |   Same tests. All passing.
+  | ✔✔ |   The code moved. The contract did not.
+  '----'
 ```
 
-Now the Tuesday `after` line shows `garageBags=0  cartBags=2  cartLocation=curb`. The first Wednesday scenario ends with `cartLocation=garage`. The second ends with `needsHuman=true`.
+The Tuesday picture now ends with the cart at the curb and a clear garage floor:
 
-## Step 10: Look at the evidence
+```
+|        GARAGE         |          ===>  |        GARAGE         |
+|  floor bags: 0        |                |  floor bags: 0        |
+|  [cart: 0 bags]       |                |  (cart is out)        |
+'-----------------------'                '-----------------------'
+  CURB: _______________                    CURB: [cart: 2 bags]
+```
 
-Three commands show what changed and who approved it. In the shell:
+[Back to top](#contents)
+
+---
+
+## 8. Check the proof
+
+Three commands show what changed and who approved it:
 
 ```bash
 git diff --stat -- tests/
 ```
-
-This prints nothing. The tests you committed in Step 7 are byte-for-byte unchanged.
+Prints **nothing**. The tests you accepted in step 6 did not change.
 
 ```bash
 git diff -- src/trashRobot.js
 ```
-
-This shows the agent's change to the program, and nothing else.
+Shows the agent's change to the code, and only the code.
 
 ```bash
 git log --oneline -3
 ```
+Shows your test commit on top of the starting point. The code fix is not committed yet. That is on purpose: reviewing it and committing it is your second decision.
 
-This shows your test commit on top of the starting point. The implementation is not committed yet. That is deliberate: reviewing and committing it is the second human decision.
-
-If the agent used its own editing tools, the hook also kept a log. Each line records a file the agent touched and whether the hook allowed it:
-
-```bash
-cat .claude/gate-log.jsonl
+```
+  spec  -->  tests (red)  -->  YOU accept  -->  code  -->  tests (green)  -->  YOU accept
 ```
 
-You will see `"decision":"allow"` for the new test file and for `src/trashRobot.js`. This file may be missing if the agent wrote files through shell commands instead of its editor tools, which the hook does not intercept.
-
-## Step 11: Accept the implementation
-
-Read the diff from Step 10. If it does what the spec says and nothing more, commit it:
+If you want to keep the fix:
 
 ```bash
 git add src/trashRobot.js
 git commit -m "feat: complete trash robot weekly cycle"
 ```
 
-The history now reads, in order: the spec, the accepted tests, the implementation. The tests never changed between the last two commits.
+[Back to top](#contents)
 
-## Step 12 (optional): Watch the guard rail block an edit
+---
 
-Paste this into Claude Code:
+## Start over
 
-```text
+One command puts everything back to the beginning:
+
+```bash
+npm run reset
+```
+
+This throws away every change and commit you made locally, so only run it when you are done. Then go back to [step 1](#1-get-the-code) (skip the clone).
+
+[Back to top](#contents)
+
+---
+
+## No Claude Code?
+
+You can still see the red and green stages. The finished answers are in the `solution/` folder.
+
+```bash
+npm run answer:tests
+npm test
+```
+Four failures, like [step 5](#5-ask-claude-to-write-the-tests).
+
+```bash
+npm run answer:code
+npm test
+npm run scenario
+```
+All five pass, like [step 7](#7-ask-claude-to-fix-the-code).
+
+Then `npm run reset` to clean up.
+
+[Back to top](#contents)
+
+---
+
+## Bonus: watch the guard rail
+
+After step 6, paste this into Claude Code:
+
+```
 Use your Edit tool to change the AC1 test in tests/contract.test.js so it
 expects garageBags to equal 2.
 ```
 
-The hook blocks the edit. Claude Code should tell you the file is a committed test and that it cannot change it. Then in the shell:
+The hook blocks it. Claude should tell you the file is a committed test and it cannot change it. To see the log:
 
 ```bash
-tail -n 1 .claude/gate-log.jsonl
+cat .claude/gate-log.jsonl
 ```
 
-The last line shows `"decision":"block"` with the reason `committed test file: accepted contract`.
+The last line says `"decision":"block"`.
 
-If the agent instead changes the file through a shell command, the hook did not see it. Undo with `git restore tests/contract.test.js`. The local hook only covers the agent's editor tools. In a real project, a protected branch and a CI check would catch the rest.
+[Back to top](#contents)
 
-## Running it again
+---
 
-To return to the starting point and run the exercise a second time:
+## Help
 
-```bash
-git reset --hard origin/main
-git clean -fd
-rm -f .claude/gate-log.jsonl
-```
+- **`npm test` fails with `bad option: --test`.** Your Node is too old. Run `node --version`. You need 20 or newer.
+- **`git commit` asks who you are.** Run `git config user.name "Your Name"` and `git config user.email "you@example.com"`, then try again.
+- **`/hooks` shows nothing.** You started `claude` in the wrong folder. Type `/exit`, `cd trash-robot-demo`, and run `claude` again.
+- **The agent changed `src/trashRobot.js` in step 5.** It should not have. Run `git restore src/trashRobot.js` and keep going.
+- **Fewer than four tests fail in step 5.** A test is checking too little. Compare it with the table in [step 3](#3-read-the-rules) and ask Claude to fix it.
+- **Something else is wrong.** Run `npm run reset` and start again.
 
-This discards every local change and commit, including the ones you made above. Then start again from Step 1 (you can skip the clone).
-
-## Walkthrough without Claude Code
-
-If you do not have Claude Code, or you want to see the red and green stages before the live run, the repository has two prebuilt checkpoints as branches. Start from a clean tree (run `git status --short` and confirm it prints nothing).
-
-```bash
-git switch demo-tests
-npm test
-```
-
-This branch has the accepted tests and the original program. Four tests fail, as in Step 6.
-
-```bash
-git switch demo-done
-npm test
-npm run scenario
-git diff --stat demo-tests demo-done -- tests/
-```
-
-This branch has the completed program. All five tests pass, the scenarios show the cart at the curb and back, and the last command prints nothing because the tests are identical on both branches.
-
-```bash
-git switch main
-```
-
-That returns you to the starting point.
-
-## Troubleshooting
-
-- **`npm test` says `node: bad option: --test`.** Your Node is older than 20. Upgrade and try again.
-- **`git commit` complains that your identity is unknown.** Run `git config user.name "Your Name"` and `git config user.email "you@example.com"`, then commit again.
-- **`/hooks` shows nothing.** Make sure you started `claude` inside the `trash-robot-demo` folder, not its parent. Quit with `/exit` and start again from the right folder.
-- **The agent wrote the tests but changed `src/trashRobot.js` too.** Run `git restore src/trashRobot.js` and continue from Step 6.
-- **The agent wrote the tests somewhere other than `tests/contract.test.js`.** Ask it to move the file there. The test runner only picks up files that end in `.test.js`.
-- **`git switch` refuses because of local changes.** You have uncommitted work. Either commit it or follow the "Running it again" section first.
-
-## What this demonstrates
-
-- A spec written as observable outcomes can be turned into tests mechanically.
-- Tests written from the spec fail against the current program, and each failure names a specific gap.
-- A person reads and accepts the tests before any implementation starts.
-- Once accepted, the tests are fixed. The implementation moves until the tests pass.
-- Git history, the test output, the diff, and the hook log form a record that anyone can inspect afterwards.
-
-This is a state simulation, not a robot. It says nothing about sensors or real-world timing. The local hook protects committed tests from the agent's editor tools. A real team would also enforce that rule with protected branches and CI.
+[Back to top](#contents)
