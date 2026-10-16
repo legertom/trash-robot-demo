@@ -6,6 +6,27 @@ The first program empties the kitchen and bathroom bins into the garage. Its ori
 
 **Requirements:** Node.js 20+ and Git. The project has no external packages.
 
+## Unzip and publish as a new GitHub repository
+
+The distribution ZIP includes this local Git repository and its three checkpoints: `main`, `demo-tests`, and `demo-done`.
+
+```bash
+unzip trash-robot-demo-github.zip
+cd trash-robot-demo
+git branch --list
+npm test
+```
+
+Create an **empty** repository on GitHub, then use its URL in these commands:
+
+```bash
+git remote add origin YOUR_NEW_GITHUB_REPOSITORY_URL
+git push -u origin main
+git push origin demo-tests demo-done
+```
+
+The `main` branch is the starting point for a live run. The other two branches are prebuilt red and green checkpoints. The ZIP is ready to run after extraction; `npm install` is unnecessary.
+
 ## Two-minute rehearsal without an agent
 
 Start on `main`:
