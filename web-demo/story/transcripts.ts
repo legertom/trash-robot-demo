@@ -1,0 +1,70 @@
+export type TerminalLine = { text: string; tone?: "command" | "pass" | "fail" | "muted" | "warn" | "accent" };
+
+export const transcripts: Record<string, TerminalLine[]> = {
+  initial: [
+    { text: "$ npm test", tone: "command" },
+    { text: "✔ initial check: Tuesday indoor bins are empty", tone: "pass" },
+    { text: "ℹ tests 1     pass 1     fail 0", tone: "muted" },
+  ],
+  prompt: [
+    { text: "AGENT PROMPT", tone: "accent" },
+    { text: "Read spec.md. Create tests/contract.test.js", tone: "command" },
+    { text: "with one node:test test for AC1–AC4.", tone: "command" },
+    { text: "Check the observable result of each run.", tone: "command" },
+    { text: "Keep src/trashRobot.js unchanged.", tone: "warn" },
+  ],
+  writing: [
+    { text: "SIMULATED AGENT ACTIVITY", tone: "accent" },
+    { text: "read  spec.md → AC1, AC2, AC3, AC4", tone: "muted" },
+    { text: "write tests/contract.test.js", tone: "command" },
+    { text: "check src/trashRobot.js unchanged", tone: "pass" },
+    { text: "ready for human review", tone: "accent" },
+  ],
+  red: [
+    { text: "$ npm test", tone: "command" },
+    { text: "✔ initial check: Tuesday indoor bins are empty", tone: "pass" },
+    { text: "✖ AC1  garage is clear · expected 0, got 2", tone: "fail" },
+    { text: "✖ AC2  garage is clear · expected 0, got 2", tone: "fail" },
+    { text: "✖ AC3  cart returns · expected garage, got curb", tone: "fail" },
+    { text: "✖ AC4  needsHuman · expected true, got false", tone: "fail" },
+    { text: "ℹ tests 5     pass 1     fail 4", tone: "warn" },
+  ],
+  commitTests: [
+    { text: "$ git add tests/contract.test.js", tone: "command" },
+    { text: "$ git commit -m \"test: accept trash robot criteria AC1-AC4\"", tone: "command" },
+    { text: "[demo 7e2a91c] test: accept trash robot criteria AC1-AC4", tone: "pass" },
+    { text: "tests/contract.test.js is now the accepted contract", tone: "accent" },
+  ],
+  green: [
+    { text: "$ npm test", tone: "command" },
+    { text: "✔ AC1  Tuesday moves bags to cart at curb", tone: "pass" },
+    { text: "✔ AC2  Tuesday works when cart starts at curb", tone: "pass" },
+    { text: "✔ AC3  Wednesday returns cart after collection", tone: "pass" },
+    { text: "✔ AC4  Wednesday delay asks the owner", tone: "pass" },
+    { text: "✔ initial check: Tuesday indoor bins are empty", tone: "pass" },
+    { text: "ℹ tests 5     pass 5     fail 0", tone: "accent" },
+  ],
+  evidence: [
+    { text: "$ git diff --stat -- tests/", tone: "command" },
+    { text: "(no output · accepted tests unchanged)", tone: "pass" },
+    { text: "$ git diff -- src/trashRobot.js", tone: "command" },
+    { text: "+ cartBags, cartLocation, needsHuman logic", tone: "accent" },
+    { text: "$ git log --oneline -3", tone: "command" },
+    { text: "7e2a91c test: accept trash robot criteria AC1-AC4", tone: "pass" },
+    { text: "b916e7a initial exercise and spec", tone: "muted" },
+  ],
+  finalCommit: [
+    { text: "$ git add src/trashRobot.js", tone: "command" },
+    { text: "$ git commit -m \"feat: complete trash robot weekly cycle\"", tone: "command" },
+    { text: "c4f8b20 feat: complete trash robot weekly cycle", tone: "pass" },
+    { text: "7e2a91c test: accept trash robot criteria AC1-AC4", tone: "pass" },
+    { text: "b916e7a initial exercise and spec", tone: "muted" },
+  ],
+  guard: [
+    { text: "SIMULATED BONUS · AGENT EDIT ATTEMPT", tone: "accent" },
+    { text: "Edit tests/contract.test.js: AC1 expects garageBags = 2", tone: "command" },
+    { text: "BLOCKED by gate \"protect-tests\"", tone: "fail" },
+    { text: "reason: committed test file · accepted contract", tone: "warn" },
+    { text: ".claude/gate-log.jsonl  decision: \"block\"", tone: "muted" },
+  ],
+};
