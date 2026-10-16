@@ -51,12 +51,18 @@ npm test
 You should see:
 
 ```
-✔ initial check: Tuesday indoor bins are empty
+✔ initial check: Tuesday indoor bins are empty (0.3ms)
+ℹ tests 1
+ℹ suites 0
 ℹ pass 1
 ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 46
 ```
 
-One test. It passes.
+One test. It passes. The timing numbers will be different on your machine. The lines to look at are always **pass** and **fail**.
 
 [Back to top](#contents)
 
@@ -161,9 +167,13 @@ You should see **four failures** and one pass:
 ✖ AC3: ...
 ✖ AC4: ...
 ✔ initial check: Tuesday indoor bins are empty
+ℹ tests 5
+ℹ suites 0
 ℹ pass 1
 ℹ fail 4
 ```
+
+Below that, Node prints the reason for each failure, for example `2 !== 0` with the message `the garage is clear`. The test names will depend on what Claude wrote.
 
 ```
    RED
@@ -220,6 +230,8 @@ npm run scenario
 ✔ AC3: ...
 ✔ AC4: ...
 ✔ initial check: Tuesday indoor bins are empty
+ℹ tests 5
+ℹ suites 0
 ℹ pass 5
 ℹ fail 0
 ```
