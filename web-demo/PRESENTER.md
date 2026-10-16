@@ -27,7 +27,7 @@ The editable timing estimates are in `story/timing.ts`; their current sum is abo
 | Beat | Approx. time | Suggested narration |
 | --- | ---: | --- |
 | 1–3 · False pass | 0:54 | “Watch the robot collect each indoor bag. The test passes when both bins are empty. Predict where the bags go next. Here is the garage floor.” |
-| 4–7 · Contract | 1:01 | “The written spec defines the whole weekly cycle. On a delayed Wednesday, the owner decides the follow-up.” |
+| 4–7 · Contract | 1:01 | “The written spec defines the whole weekly cycle. AC2 jumps to the next Tuesday: fresh indoor bags, an empty cart still at the curb. On a delayed Wednesday, the owner decides the follow-up.” |
 | 8–10 · Agent writes tests | 0:46 | “The agent translates each rule into an observable check. Four failures are useful evidence.” |
 | 11–12 · Accept tests | 0:34 | “I review these tests against the spec. Committing them fixes the contract before implementation.” |
 | 13–15 · Change code | 0:49 | “Watch the destination change from garage floor to cart, then curb. Wednesday has two branches.” |
@@ -44,3 +44,5 @@ Pause as long as the room needs at the prediction and human gates. The optional 
 - `story/fixtures.ts`, `story/transcripts.ts`, `story/scenes.ts`, and `story/timing.ts` hold the deterministic narrative data.
 
 The displayed commit hashes, durations, agent activity, and terminal lines are illustrative. The owner's delayed-pickup choice records a follow-up only; it does not pretend collection has happened. The final simulated commit occurs after the owner's second acceptance; the original README leaves that commit optional for its live exercise.
+
+The “week 2” label in AC2 is a story cue. AC2 still checks the spec's Tuesday starting state: fresh indoor bags and a cart already at the curb. The narration assumes the prior pickup emptied the cart and it was left outside; the acceptance test does not assert why it is there.

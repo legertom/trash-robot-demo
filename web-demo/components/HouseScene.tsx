@@ -72,7 +72,7 @@ export default function HouseScene({ fixture, focus, route = false, compact = fa
   const isBad = state.garageBags > 0;
   return (
     <div className={`house-wrap ${compact ? "house-compact" : ""}`}>
-      <svg className="house-svg" viewBox="0 0 960 570" role="img" aria-label={`${state.day}: kitchen ${state.kitchenBags} bags, bathroom ${state.bathroomBags} bags, robot carrying ${cue?.carrying ?? 0} bags, garage floor ${state.garageBags} bags, cart ${state.cartBags} bags at ${state.cartLocation}, pickup ${state.pickupComplete ? "complete" : "pending"}, needsHuman ${state.needsHuman}`}>
+      <svg className="house-svg" viewBox="0 0 960 570" role="img" aria-label={`${state.storyWeek ? `week ${state.storyWeek}, ` : ""}${state.day}: kitchen ${state.kitchenBags} bags, bathroom ${state.bathroomBags} bags, robot carrying ${cue?.carrying ?? 0} bags, garage floor ${state.garageBags} bags, cart ${state.cartBags} bags at ${state.cartLocation}, pickup ${state.pickupComplete ? "complete" : "pending"}, needsHuman ${state.needsHuman}`}>
         <defs>
           <pattern id="floorLines" width="22" height="22" patternUnits="userSpaceOnUse">
             <path d="M0 22 L22 0" stroke="#D3DFD3" strokeWidth="1" opacity=".28" />
@@ -125,7 +125,7 @@ export default function HouseScene({ fixture, focus, route = false, compact = fa
         )}
       </svg>
       <div className="house-readout" aria-hidden="true">
-        <span><b>{state.day.toUpperCase()}</b></span>
+        <span><b>{state.day.toUpperCase()}{state.storyWeek ? ` · WEEK ${state.storyWeek}` : ""}</b></span>
         <span>GARAGE FLOOR <b className={isBad ? "bad-value" : ""}>{state.garageBags}</b></span>
         <span>CART <b>{state.cartLocation.toUpperCase()} · {state.cartBags} BAGS</b></span>
         <span>OWNER <b className={state.needsHuman ? "attention-value" : ""}>{state.needsHuman ? "NEEDED" : "CLEAR"}</b></span>
