@@ -1,0 +1,14 @@
+{
+  "name": "trash-robot-spec-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A small spec-to-failing-test demo using a weekly trash robot",
+  "scripts": {
+    "test": "node --test --test-reporter=spec",
+    "scenario": "node scripts/show-scenario.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
