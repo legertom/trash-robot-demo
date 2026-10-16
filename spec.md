@@ -1,6 +1,6 @@
 # Trash robot: weekly collection cycle
 
-This is a software simulation of the robot's decision logic. The presenter is the household owner and accepts the criteria before implementation.
+This is a software simulation of the robot's decision logic. The person running the demo plays the household owner and accepts the criteria before implementation.
 
 ## 1. Intent
 
@@ -26,9 +26,9 @@ Run `npm test`. The tests check the observable state described in AC1–AC4 and 
 
 ## 5. Human gates
 
-- The household owner reviews and commits tests generated from AC1–AC4 before implementation begins.
+- The household owner reviews and commits tests generated from AC1–AC4 before implementation begins (README Step 7).
 - The household owner decides the next step when collection is delayed.
-- The household owner reviews the final code change and test results before accepting it.
+- The household owner reviews the final code change and test results before accepting it (README Step 11).
 
 ## 6. Evidence
 

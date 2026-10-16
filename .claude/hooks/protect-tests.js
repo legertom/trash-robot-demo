@@ -42,7 +42,7 @@ if (blocked) {
   process.stderr.write(
     `BLOCKED by gate "protect-tests": ${rel} is a committed test.\n` +
     `Committed tests are the accepted contract from spec.md and cannot be changed by the agent.\n` +
-    `If you believe the test is wrong, stop and explain why. Route: the Tech Lead updates spec.md, ` +
+    `If you believe the test is wrong, stop and explain why. Route: a person updates spec.md, ` +
     `then a human edits and re-commits the test.\n`
   );
   process.exit(2); // exit 2 = block the tool call and show this message to the agent

@@ -1,43 +1,60 @@
 # Presenter notes: trash robot demo
 
-**Aim:** about five minutes. Show the move from a narrow check to acceptance tests that cover the full task. Keep the Wednesday return as the second beat of the same story.
+**Aim:** about five minutes live. Show the move from a narrow check to acceptance tests that cover the full job, with a human accepting the tests before the agent implements.
 
-## Before the interview
+**Rule for the live run:** follow `README.md` step by step, exactly as a student would at home. The notes below only add timing and spoken lines to those steps. If something in the README does not work for you, fix the README, not your memory.
 
-- Open this repository on the `main` checkpoint and run `npm test`.
+## Before the session
+
+- Clone a fresh copy and run README Steps 1 and 2 to confirm the toolchain works on this machine.
+- Run the "Walkthrough without Claude Code" section once so the checkpoint branches are fetched and you have seen the red and green output.
+- Run README Steps 4 through 11 once end to end with Claude Code, then run the "Running it again" section to reset.
 - Open `spec.md` in your editor and make the text large enough to read on a video call.
-- Open Claude Code in this folder and confirm the edit hook is loaded with `/hooks`.
-- Keep a regular terminal beside it for `npm test` and Git commands.
-- Rehearse `demo-tests`, `demo-done`, and `DEMO-OUTPUT.md` as backups.
+- Arrange two terminal windows side by side: Claude Code on one side, the shell on the other.
+- Keep `DEMO-OUTPUT.md` open in a tab in case the agent is slow.
 
-## Spoken flow
+## Timing against the README steps
 
-### 1. Start with the household story (45 seconds)
+| README step | Time | What to say |
+| --- | --- | --- |
+| 1 and 2 | 45 s | "In my house, I am the household robot. The first instruction was to empty the kitchen and bathroom bins. The test passes. Look at the scenario: the bags are on the garage floor and the cart never moved. The test checked the wrong thing." |
+| 3 | 30 s | "Here is the revised contract. Four criteria. Tuesday: bags to the cart, cart to the curb, even if the cart is already out. Wednesday: bring it back after pickup, or ask me if pickup is late." |
+| 4 | 15 s | "One guard rail: once I commit a test, the agent cannot edit it." Show `/hooks`. |
+| 5 and 6 | 90 s | Paste the first prompt. While the agent works: "The agent reads the spec and writes one test per criterion. It does not touch the program." Run `npm test`. "Four failures, and each one names an outcome we do not produce yet." |
+| 7 | 30 s | Skim the test file. "This is the human step. I read these and decide they are the contract." Commit. |
+| 8 and 9 | 60 s | Paste the second prompt. Run `npm test`. "Same tests, now passing. The program moved. The contract did not." |
+| 10 | 30 s | `git diff --stat -- tests/` prints nothing. `git diff -- src/trashRobot.js`. `git log --oneline -3`. "We can see what changed, what did not, and who accepted each stage." |
 
-“In my house, I am the household robot. The first instruction was to empty the kitchen and bathroom bins. Here is a tiny simulation of that routine. The original check passes. When we inspect the full result, both bags are in the garage. That tells us exactly what to add to our contract.”
+Skip Steps 11 and 12 unless there is time. Step 12 is a good closer if the audience asks what stops the agent from changing a test.
 
-Run `npm test`, then `npm run scenario`. Point to `garageBags: 2`.
+## If the agent is slow
 
-### 2. Show the revised contract (45 seconds)
-
-Open `spec.md` and point to AC1–AC4. “On Tuesday, the bags reach the outdoor cart and the cart reaches the curb. The robot also works when the cart starts at the curb. On Wednesday, it returns the cart after pickup, or asks a person to decide when collection is delayed.”
-
-### 3. Let the agent write the tests (90 seconds)
-
-Use the test-generation prompt in `README.md`, then run `npm test`. “These failures are useful: the assertions show which observable outcomes the current program has yet to meet.” Review the generated tests. Commit them yourself as the human acceptance step.
-
-### 4. Let the agent implement (90 seconds)
-
-Use the implementation prompt in `README.md`, then run `npm test`. “The same accepted tests now pass. The implementation changed; the contract stayed fixed.”
-
-### 5. Show the evidence (45 seconds)
-
-Run `git diff --stat -- tests/`, `git diff -- src/trashRobot.js`, and `git log --oneline -3`. “We can inspect the criteria, the test result, the code change, and who accepted each stage.”
-
-## If the agent takes time
-
-Use `DEMO-OUTPUT.md` immediately. In a clean rehearsal copy, `git switch demo-tests` shows the failing acceptance tests and `git switch demo-done` shows the passing version.
+Switch to `DEMO-OUTPUT.md` and talk through the captured red and green output. If you have a clean rehearsal copy, `git switch demo-tests` shows the failing tests live and `git switch demo-done` shows them passing.
 
 ## If the panel presses on realism
 
-“This is a small state simulation so the test result is easy to read on screen. In a real workflow, the same structure applies to a code change: accepted requirements, tests tied to those requirements, a human decision, and a stored record. A real robot would need sensors and handling for physical failures. For a company, protected branches and CI would reinforce the local edit hook.”
+"This is a small state simulation so the result is easy to read on screen. The same structure applies to any code change: accepted requirements, tests tied to those requirements, a human decision, and a stored record. A real robot would need sensors and handling for physical failures. For a company, protected branches and CI would reinforce the local edit hook."
+
+## Maintaining the checkpoint branches
+
+`demo-tests` and `demo-done` are plain branches, one commit each, built on top of `main`. When `main` changes (for example, after editing this guide or the scenario script), rebuild them so every branch carries the same README:
+
+```bash
+git switch main
+git pull
+git branch -D demo-tests demo-done 2>/dev/null
+
+git switch -c demo-tests
+git checkout origin/demo-done -- tests/contract.test.js
+git commit -m "test: accept trash robot criteria AC1-AC4"
+
+git switch -c demo-done
+git checkout origin/demo-done -- src/trashRobot.js
+git commit -m "feat: complete trash robot weekly cycle"
+npm test
+
+git switch main
+git push --force origin demo-tests demo-done
+```
+
+The two `git checkout origin/demo-done -- <file>` lines copy the accepted test file and the finished implementation from the previous `demo-done`. Run `npm test` on `demo-done` before pushing to confirm all five tests still pass.
