@@ -48,6 +48,8 @@ cd trash-robot-demo
 npm test
 ```
 
+If git says the folder `already exists`, you have it from before. Just run the `cd` and `npm test` lines.
+
 You should see:
 
 ```
@@ -128,21 +130,17 @@ cd trash-robot-demo
 claude
 ```
 
-If it asks whether you trust this folder, say yes.
+If it asks whether you trust this folder, say yes. You should see the Claude Code logo and the folder name `trash-robot-demo`. Leave it open.
 
-Now type this inside Claude Code and press Enter:
-
-```
-/hooks
-```
-
-You should see a hook called `protect-tests.js`. Press Escape to close.
+That is all. This folder has a small guard rail in it, which Claude Code loads on its own:
 
 ```
    [o_o]  <-- the agent
     | |
   ======  <-- the guard rail: once you commit a test, the agent cannot edit it
 ```
+
+You will see it in action in the [bonus step](#bonus-watch-the-guard-rail).
 
 [Back to top](#contents)
 
@@ -359,7 +357,7 @@ The last line says `"decision":"block"`.
 
 - **`npm test` fails with `bad option: --test`.** Your Node is too old. Run `node --version`. You need 20 or newer.
 - **`git commit` asks who you are.** Run `git config user.name "Your Name"` and `git config user.email "you@example.com"`, then try again.
-- **`/hooks` shows nothing.** You started `claude` in the wrong folder. Type `/exit`, `cd trash-robot-demo`, and run `claude` again.
+- **Claude Code shows a different folder name at startup.** You started `claude` in the wrong folder. Type `/exit`, `cd trash-robot-demo`, and run `claude` again.
 - **The agent changed `src/trashRobot.js` in step 5.** It should not have. Run `git restore src/trashRobot.js` and keep going.
 - **Fewer than four tests fail in step 5.** A test is checking too little. Compare it with the table in [step 3](#3-read-the-rules) and ask Claude to fix it.
 - **Something else is wrong.** Run `npm run reset` and start again.
