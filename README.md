@@ -74,7 +74,7 @@ One test. It passes. The timing numbers will be different on your machine. The l
 npm run scenario
 ```
 
-This draws the house before and after the robot runs. The first picture is Tuesday:
+This draws the house before and after the robot runs, once for each of the four rules. The first picture is a normal Tuesday:
 
 ```
 BEFORE the robot runs                    AFTER the robot runs
@@ -89,7 +89,12 @@ BEFORE the robot runs                    AFTER the robot runs
   CURB: _______________                    CURB: _______________
 ```
 
-The bins are empty, so the test passes. But look at the garage: two bags on the floor, cart never moved. In the two Wednesday pictures, nothing changes at all.
+The bins are empty, so the test passes. But look at the garage: two bags on the floor, cart never moved. Under each picture the script says what the spec wants and whether the robot did it. At the end it adds up:
+
+```
+0 of 4 scenarios match the spec.
+npm test still passes, because the old test only checks the indoor bins.
+```
 
 **The test passes. The job is not done.** That is the whole problem.
 
@@ -244,7 +249,7 @@ npm run scenario
   '----'
 ```
 
-The Tuesday picture now ends with the cart at the curb and a clear garage floor:
+The scenario now says `4 of 4 scenarios match the spec`, and the Tuesday picture ends with the cart at the curb and a clear garage floor:
 
 ```
 |        GARAGE         |          ===>  |        GARAGE         |
