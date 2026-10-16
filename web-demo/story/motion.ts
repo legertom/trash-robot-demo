@@ -13,4 +13,8 @@ export const robotCues: Record<string, RobotCue> = {
   pickupBathroom: { x: 470, y: 260, carrying: 1 },
   bathroomPicked: { x: 440, y: 260, carrying: 2, pickupAt: "bathroom" },
   carrying: { x: 470, y: 395, carrying: 2 },
+  curbKitchenPicked: { x: 315, y: 260, carrying: 1, oneBagSide: "right", pickupAt: "kitchen" },
+  curbBathroomPicked: { x: 440, y: 260, carrying: 2, pickupAt: "bathroom" },
+  curbCarrying: { x: 710, y: 395, carrying: 2 },
+  collectedApproach: { x: 710, y: 395, carrying: 0 },
 };

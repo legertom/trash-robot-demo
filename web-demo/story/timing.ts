@@ -1,5 +1,10 @@
 // Presenter estimates are editable and never auto-advance a scene.
 export const revealIntervalMs = 1150;
+export const sceneRevealIntervalMs: Record<string, number> = {
+  ac1: 1650,
+  ac2: 1650,
+  ac3: 1500,
+};
 
 export const sceneSeconds: Record<string, number> = {
   pass: 19, predict: 17, gap: 18, ac1: 15, ac2: 13, ac3: 13,

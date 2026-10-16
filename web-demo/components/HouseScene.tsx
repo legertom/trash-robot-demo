@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { fixtures, type HouseState } from "../story/fixtures";
 import { robotCues, type RobotCue } from "../story/motion";
 
@@ -67,6 +68,7 @@ function Robot({ state, cue }: { state: HouseState; cue?: RobotCue }) {
 }
 
 export default function HouseScene({ fixture, focus, route = false, compact = false }: Props) {
+  const svgId = useId();
   const state = fixtures[fixture] ?? fixtures.before;
   const cue = robotCues[fixture];
   const isBad = state.garageBags > 0;
@@ -74,13 +76,10 @@ export default function HouseScene({ fixture, focus, route = false, compact = fa
     <div className={`house-wrap ${compact ? "house-compact" : ""}`}>
       <svg className="house-svg" viewBox="0 0 960 570" role="img" aria-label={`${state.storyWeek ? `week ${state.storyWeek}, ` : ""}${state.day}: kitchen ${state.kitchenBags} bags, bathroom ${state.bathroomBags} bags, robot carrying ${cue?.carrying ?? 0} bags, garage floor ${state.garageBags} bags, cart ${state.cartBags} bags at ${state.cartLocation}, pickup ${state.pickupComplete ? "complete" : "pending"}, needsHuman ${state.needsHuman}`}>
         <defs>
-          <pattern id="floorLines" width="22" height="22" patternUnits="userSpaceOnUse">
+          <pattern id={`${svgId}-floorLines`} width="22" height="22" patternUnits="userSpaceOnUse">
             <path d="M0 22 L22 0" stroke="#D3DFD3" strokeWidth="1" opacity=".28" />
           </pattern>
-          <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="11" />
-          </filter>
-          <marker id="routeArrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <marker id={`${svgId}-routeArrow`} markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
             <path d="M1 1 L7 4 L1 7" fill="none" stroke="#E8B56E" strokeWidth="2" />
           </marker>
         </defs>
@@ -94,7 +93,7 @@ export default function HouseScene({ fixture, focus, route = false, compact = fa
         <path d="M50 153 L375 30 L700 153" fill="#1A333B" stroke="#10232B" strokeWidth="5" strokeLinejoin="round" />
         <path d="M84 145 L375 43 L666 145" fill="none" stroke="#A8C7B7" strokeWidth="5" opacity=".55" />
         <rect x="61" y="151" width="638" height="321" rx="3" fill="#F5F2E9" stroke="#10232B" strokeWidth="5" />
-        <rect x="65" y="155" width="630" height="313" fill="url(#floorLines)" />
+        <rect x="65" y="155" width="630" height="313" fill={`url(#${svgId}-floorLines)`} />
         <path d="M380 153 V338 M62 337 H699" stroke="#10232B" strokeWidth="5" />
         <rect x="88" y="174" width="95" height="70" rx="8" fill="#C5DCD3" stroke="#76988C" strokeWidth="3" />
         <path d="M136 175 V244 M89 209 H183" stroke="#76988C" strokeWidth="3" />
@@ -107,8 +106,8 @@ export default function HouseScene({ fixture, focus, route = false, compact = fa
         <text x="190" y="450" textAnchor="middle" className={`house-floor-count ${isBad ? "danger" : ""}`}>{state.garageBags} {state.garageBags === 1 ? "BAG" : "BAGS"}</text>
         {focus === "garage" && <rect x="73" y="352" width="286" height="108" rx="16" className="focus-halo danger-halo" />}
         {focus === "cart" && <rect x={state.cartLocation === "curb" ? "755" : "540"} y="355" width="150" height="120" rx="18" className="focus-halo" />}
-        {focus === "return" && <path d="M815 344 Q733 246 620 344" className="focus-path" markerEnd="url(#routeArrow)" />}
-        {route && <path d="M255 303 Q400 355 570 326 Q660 292 800 342" className="route-path" markerEnd="url(#routeArrow)" />}
+        {focus === "return" && <path d="M815 344 Q733 246 620 344" className="focus-path" markerEnd={`url(#${svgId}-routeArrow)`} />}
+        {route && <path d="M255 303 Q400 355 570 326 Q660 292 800 342" className="route-path" markerEnd={`url(#${svgId}-routeArrow)`} />}
         <Bin x={272} label="INDOOR BIN" count={state.kitchenBags} />
         <Bin x={589} label="INDOOR BIN" count={state.bathroomBags} />
         {cue?.pickupAt && <circle key={fixture} cx={cue.pickupAt === "kitchen" ? 272 : 589} cy="285" r="51" className="pickup-ring" />}
@@ -126,7 +125,9 @@ export default function HouseScene({ fixture, focus, route = false, compact = fa
       </svg>
       <div className="house-readout" aria-hidden="true">
         <span><b>{state.day.toUpperCase()}{state.storyWeek ? ` · WEEK ${state.storyWeek}` : ""}</b></span>
-        <span>GARAGE FLOOR <b className={isBad ? "bad-value" : ""}>{state.garageBags}</b></span>
+        {state.day === "Wednesday"
+          ? <span>PICKUP <b>{state.pickupComplete ? "CONFIRMED" : "PENDING"}</b></span>
+          : <span>GARAGE FLOOR <b className={isBad ? "bad-value" : ""}>{state.garageBags}</b></span>}
         <span>CART <b>{state.cartLocation.toUpperCase()} · {state.cartBags} BAGS</b></span>
         <span>OWNER <b className={state.needsHuman ? "attention-value" : ""}>{state.needsHuman ? "NEEDED" : "CLEAR"}</b></span>
       </div>

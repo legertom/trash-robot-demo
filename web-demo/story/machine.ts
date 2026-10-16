@@ -24,7 +24,7 @@ export type Action =
   | { type: "NEXT" } | { type: "BACK" } | { type: "RESTART" }
   | { type: "JUMP"; index: number } | { type: "TICK"; max: number }
   | { type: "REVEAL_ALL"; max: number } | { type: "TOGGLE_PLAY"; max: number }
-  | { type: "PREDICTION_READY" } | { type: "DELAY_CHOICE"; choice: string }
+  | { type: "REVEAL_OUTCOME" } | { type: "DELAY_CHOICE"; choice: string }
   | { type: "TOGGLE_REVIEW"; id: string } | { type: "ACCEPT_TESTS" }
   | { type: "ACCEPT_FINAL" } | { type: "SELECT_FAILURE"; id: string }
   | { type: "TOGGLE_JUMP" } | { type: "SHOW_GUARD" } | { type: "HIDE_GUARD" };
@@ -61,8 +61,8 @@ export function storyReducer(state: StoryState, action: Action): StoryState {
       return state.step >= action.max
         ? { ...state, step: 1, playing: true }
         : { ...state, playing: !state.playing };
-    case "PREDICTION_READY":
-      return { ...state, predictionReady: true };
+    case "REVEAL_OUTCOME":
+      return { ...state, predictionReady: true, index: Math.min(scenes.length - 1, state.index + 1), step: 1, playing: false };
     case "DELAY_CHOICE":
       return { ...state, delayChoice: action.choice };
     case "TOGGLE_REVIEW":

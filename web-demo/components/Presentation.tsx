@@ -3,18 +3,12 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import HouseScene from "./HouseScene";
 import Terminal from "./Terminal";
-import { criteria } from "../story/fixtures";
+import { failureHouse, houseCaptions } from "../story/captions";
+import { criteria, fixtures } from "../story/fixtures";
 import { guardScene, scenes, type Scene } from "../story/scenes";
 import { canAdvance, initialState, storyReducer } from "../story/machine";
-import { revealIntervalMs } from "../story/timing";
+import { revealIntervalMs, sceneRevealIntervalMs } from "../story/timing";
 import { transcripts } from "../story/transcripts";
-
-const failureHouse: Record<string, { fixture: string; focus: string; text: string }> = {
-  AC1: { fixture: "misleading", focus: "garage", text: "Two bags on the garage floor" },
-  AC2: { fixture: "failingAc2", focus: "cart", text: "Cart at curb, still empty" },
-  AC3: { fixture: "collectedBefore", focus: "return", text: "Collected cart still at curb" },
-  AC4: { fixture: "delayedBefore", focus: "human", text: "No owner signal after delay" },
-};
 
 function maxStep(scene: Scene) {
   return Math.max(scene.transcript ? transcripts[scene.transcript]?.length ?? 1 : 1, scene.frames?.length ?? 1);
@@ -47,18 +41,44 @@ function DiffPanel() {
 function ScenarioGrid() {
   return (
     <div className="scenario-grid">
-      {criteria.map((item, index) => (
-        <div className="scenario-card" key={item.id}>
+      {criteria.map((item) => {
+        const outcome = fixtures[item.fixture];
+        const facts = outcome.day === "Tuesday"
+          ? [["INDOOR", `${outcome.kitchenBags} + ${outcome.bathroomBags}`], ["FLOOR", String(outcome.garageBags)], ["CART", `${outcome.cartBags} · ${outcome.cartLocation.toUpperCase()}`]]
+          : [["PICKUP", outcome.pickupComplete ? "CONFIRMED" : "PENDING"], ["CART", `${outcome.cartBags} · ${outcome.cartLocation.toUpperCase()}`], ["OWNER", outcome.needsHuman ? "NEEDED" : "CLEAR"]];
+        return <div className="scenario-card" key={item.id}>
           <div className="scenario-card-top"><span className="criterion-pill">{item.id}</span><span className="status-pass">✓ MATCH</span></div>
           <h3>{item.title}</h3>
           <p>{item.short}</p>
-          <div className="scenario-track">
-            <span className={index < 2 ? "track-active" : ""}>TUE</span>
-            <i />
-            <span className={index >= 2 ? "track-active" : ""}>WED</span>
+          <div className="scenario-metrics" aria-label={`${item.id} observed result`}>
+            {facts.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}
           </div>
+          <div className="scenario-track"><span className={outcome.day === "Tuesday" ? "track-active" : ""}>TUE</span><i /><span className={outcome.day === "Wednesday" ? "track-active" : ""}>WED</span></div>
+        </div>;
+      })}
+    </div>
+  );
+}
+
+function WednesdayBranches() {
+  return (
+    <div className="branch-stage" aria-label="Two alternative Wednesday outcomes">
+      <div className="branch-question">ONE PICKUP DAY <span>→</span> TWO POSSIBLE OUTCOMES</div>
+      <div className="branch-grid">
+        <div className="branch-card">
+          <span className="branch-status">PATH A · PICKUP CONFIRMED</span>
+          <strong>Empty cart comes home</strong>
+          <div className="branch-house"><HouseScene fixture="ac3" compact /></div>
+          <div className="branch-summary"><span>CART · GARAGE</span><span>OWNER CLEAR</span></div>
         </div>
-      ))}
+        <span className="branch-or" aria-hidden="true">OR</span>
+        <div className="branch-card branch-delayed">
+          <span className="branch-status">PATH B · PICKUP DELAYED</span>
+          <strong>Full cart stays out</strong>
+          <div className="branch-house"><HouseScene fixture="ac4" compact /></div>
+          <div className="branch-summary"><span>CART · CURB</span><span>OWNER NEEDED</span></div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -111,7 +131,7 @@ export default function Presentation() {
 
   useEffect(() => {
     if (!state.playing || state.step >= max || reducedMotion) return;
-    const timer = window.setTimeout(() => dispatch({ type: "TICK", max }), revealIntervalMs);
+    const timer = window.setTimeout(() => dispatch({ type: "TICK", max }), sceneRevealIntervalMs[scene.id] ?? revealIntervalMs);
     return () => window.clearTimeout(timer);
   }, [state.playing, state.step, max, reducedMotion, scene.id]);
 
@@ -153,10 +173,8 @@ export default function Presentation() {
   const transcriptVisible = scene.transcriptRevealSteps
     ? scene.transcriptRevealSteps.filter(step => state.step >= step).length
     : state.step;
-  const pickupCaption = ["The house before the run", "Robot reaches the kitchen bin", "Kitchen bag in hand", "Robot reaches the bathroom bin", "Both bins empty · two bags in hand", "Test passes · destination still unknown"];
-  const routeCaption = ["Route begins", "Robot reaches the kitchen bin", "Kitchen bag in hand", "Robot reaches the bathroom bin", "Both bags in hand", "Bags loaded in cart", "Cart at curb · garage clear"];
   const criterion = criteria.find(item => item.id === scene.criterion);
-  const isHouseScene = ["pass", "predict", "gap", "criterion", "route", "wednesday"].includes(scene.kind);
+  const isHouseScene = ["pass", "predict", "gap", "criterion", "route"].includes(scene.kind);
   const showTerminalAtLeft = scene.kind === "pass" || scene.kind === "red" || scene.kind === "evidence";
 
   return (
@@ -186,7 +204,7 @@ export default function Presentation() {
             <div className="gate-card prediction-gate">
               <div className="gate-icon">?</div>
               <div><strong>Ask the room</strong><span>Where did the bags end up?</span></div>
-              <button type="button" className="action-button" onClick={() => dispatch({ type: "PREDICTION_READY" })}>{state.predictionReady ? "READY TO REVEAL ✓" : "REVEAL THE OUTCOME"}</button>
+              <button type="button" className="action-button" onClick={() => dispatch({ type: "REVEAL_OUTCOME" })}>REVEAL THE OUTCOME</button>
             </div>
           )}
 
@@ -241,8 +259,8 @@ export default function Presentation() {
             <div className="house-stage">
               <HouseScene fixture={currentFixture} focus={scene.kind === "gap" ? "garage" : scene.kind === "criterion" && scene.criterion === "AC4" ? "human" : undefined} route={scene.kind === "route" && state.step >= 6} />
               <div className="house-caption">
-                <span>{scene.kind === "gap" ? "OBSERVED RESULT" : scene.kind === "pass" ? state.step === 1 ? "BEFORE THE RUN" : state.step === max ? "TEST RESULT" : "ROBOT AT WORK" : scene.kind === "predict" ? "PREDICTION PAUSE" : scene.id === "ac2" ? state.step === 1 ? "ONE WEEK LATER · BEFORE" : "AC2 RESULT" : scene.kind === "criterion" && state.step === 1 ? "BEFORE THE RUN" : "SPEC EXPECTATION"}</span>
-                <strong>{scene.kind === "gap" ? "Bins empty ≠ task complete" : scene.kind === "pass" ? pickupCaption[state.step - 1] : scene.kind === "predict" ? "Empty bins · destination unknown" : scene.id === "ac2" ? state.step === 1 ? "Fresh indoor bags · empty cart already at curb" : "Both bags in curbside cart · garage clear" : scene.kind === "wednesday" ? state.step > 1 ? "Delay → owner needed" : "Collected → cart home" : scene.kind === "route" ? routeCaption[state.step - 1] : scene.kind === "criterion" && state.step === 1 ? "Starting state" : criterion?.short ?? "The house tells the story"}</strong>
+                <span>{scene.kind === "gap" ? "OBSERVED RESULT" : scene.kind === "pass" ? state.step === 1 ? "BEFORE THE RUN" : state.step === max ? "TEST RESULT" : "ROBOT AT WORK" : scene.kind === "predict" ? "PREDICTION PAUSE" : scene.kind === "criterion" ? state.step === 1 ? scene.id === "ac2" ? "ONE WEEK LATER · BEFORE" : "BEFORE THE RUN" : state.step === max ? "SPEC EXPECTATION" : "EXPECTED ROUTE" : "SPEC EXPECTATION"}</span>
+                <strong>{scene.kind === "gap" ? "Bins empty ≠ task complete" : scene.kind === "predict" ? "Empty bins · destination unknown" : houseCaptions[scene.id]?.[state.step - 1] ?? criterion?.short ?? "The house tells the story"}</strong>
               </div>
             </div>
           )}
@@ -280,6 +298,7 @@ export default function Presentation() {
           )}
 
           {scene.kind === "diff" && <div className="diff-stage"><DiffPanel /><div className="diff-route"><span>BEFORE</span><strong>Bins → garage floor</strong><span className="diff-route-arrow">↓</span><span>AFTER</span><strong>Bins → cart → curb</strong></div></div>}
+          {scene.kind === "wednesday" && <WednesdayBranches />}
           {scene.kind === "scenarios" && <ScenarioGrid />}
           {scene.kind === "evidence" && (
             <div className="evidence-grid">
